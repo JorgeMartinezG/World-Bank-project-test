@@ -61,7 +61,7 @@ const layers = {
 export class MapComponent implements OnDestroy {
   @Output() map$: EventEmitter<Map> = new EventEmitter();
   @Input() options: MapOptions = {
-    layers: [layers.osm],
+    layers: [layers.esriTopo],
     zoom: 3,
     center: latLng(0, 0),
   };
@@ -77,9 +77,9 @@ export class MapComponent implements OnDestroy {
 
   onMapReady(map: Map) {
     const basemaps = {
-      OSM: layers.osm,
-      "Topo map": layers.topo,
       "Esri Topo": layers.esriTopo,
+      Openstreetmap: layers.osm,
+      "Topo map": layers.topo,
       "Esri Gray": layers.esriGray,
     };
 
@@ -98,10 +98,10 @@ export class MapComponent implements OnDestroy {
         {},
       );
 
-      control.layers(basemaps, overlays).addTo(map);
+      control.layers(basemaps, overlays, { collapsed: false }).addTo(map);
     });
 
-    (L.Control as any).geocoder().addTo(map);
+    (L.Control as any).geocoder({ collapsed: false }).addTo(map);
 
     this.map = map;
     this.map$.emit(map);
