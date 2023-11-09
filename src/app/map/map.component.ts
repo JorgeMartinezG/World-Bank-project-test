@@ -1,58 +1,108 @@
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
-import { Map, Control, DomUtil, ZoomAnimEvent , Layer, MapOptions, tileLayer, latLng } from 'leaflet';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  Input,
+  Output,
+  OnChanges,
+  EventEmitter,
+  SimpleChanges,
+} from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import {
+  Map,
+  control,
+  DomUtil,
+  ZoomAnimEvent,
+  Layer,
+  MapOptions,
+  tileLayer,
+  latLng,
+  circle,
+  polygon,
+} from "leaflet";
+import * as L from "leaflet";
+import "leaflet-control-geocoder";
 
 const layers = {
-  topo: tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
-    maxZoom: 30,
-    minZoom: 12
+  topo: L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+    maxZoom: 17,
+    attribution:
+      'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
   }),
-  esri: tileLayer(
-    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    { maxZoom: 30, minZoom: 12 }
+  esriTopo: L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+    {
+      attribution:
+        "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community",
+    },
   ),
-  osm: tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  esriGray: L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    {
+      attribution: "Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ",
+      maxZoom: 16,
+    },
+  ),
+  osm: tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     opacity: 0.7,
     maxZoom: 19,
     detectRetina: true,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  })
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }),
 };
 
 @Component({
-  selector: 'app-map',
-  templateUrl: './map.component.html',
-  styleUrls: ['./map.component.css',]
+  selector: "app-map",
+  templateUrl: "./map.component.html",
+  styleUrls: ["./map.component.css"],
 })
-export class MapComponent implements OnInit, OnDestroy {
-  @Output() map$: EventEmitter<Map> = new EventEmitter;
-  @Input() options: MapOptions= {
-                      layers:[layers.osm],
-                      zoom:1,
-                      center:latLng(0,0)
+export class MapComponent implements OnDestroy {
+  @Output() map$: EventEmitter<Map> = new EventEmitter();
+  @Input() options: MapOptions = {
+    layers: [layers.osm],
+    zoom: 3,
+    center: latLng(0, 0),
   };
   public map: Map;
+  private customLayers: any[] = [];
 
-  layersControl = {
-      baseLayers: {
-        openstreetmap: layers.osm,
-        "Topo Map": layers.topo,
-        "ESRI World Imagery": layers.esri,
-      },
-      overlays: {}
-  }
-
-  constructor() { 
-  }
-
-  ngOnInit() {
-  }
+  constructor(private http: HttpClient) {}
 
   ngOnDestroy() {
     this.map.clearAllEventListeners;
     this.map.remove();
-  };
+  }
 
   onMapReady(map: Map) {
+    const basemaps = {
+      OSM: layers.osm,
+      "Topo map": layers.topo,
+      "Esri Topo": layers.esriTopo,
+      "Esri Gray": layers.esriGray,
+    };
+
+    // Add layers from server.
+    this.http.get("http://localhost:3000").subscribe((res: any) => {
+      const overlays = res.layers.reduce(
+        (acc: any, item: any) => ({
+          ...acc,
+          [item.title]: tileLayer.wms(item.url, {
+            layers: item.id,
+            format: "image/png",
+            version: "1.1.0",
+            transparent: true,
+          }),
+        }),
+        {},
+      );
+
+      control.layers(basemaps, overlays).addTo(map);
+    });
+
+    (L.Control as any).geocoder().addTo(map);
+
     this.map = map;
     this.map$.emit(map);
   }
