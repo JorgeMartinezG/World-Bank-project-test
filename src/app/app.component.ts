@@ -1,10 +1,16 @@
 import { Component } from '@angular/core';
+import {Map} from 'leaflet';
 
 @Component({
-  selector: 'app-root',
+  selector: 'my-app',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: [ './app.component.css' ]
 })
-export class AppComponent {
-  title = 'wb_test';
+export class AppComponent  {
+  private map: Map;
+  
+  receiveMap(map: Map) {
+    this.map = map;
+  }
+
 }
