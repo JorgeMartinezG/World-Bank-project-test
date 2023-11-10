@@ -53,7 +53,11 @@ app.get("/", (request, response) => {
       layers.filter((layer) => allowedLayers.includes(layer.id)),
     )
     .then((layers) => layers.map((layer) => ({ ...layer, url: serverUrl })))
-    .then((layers) => response.json({ total: layers.length, layers }));
+    .then((layers) => ({ total: layers.length, layers }))
+    .then((output) => {
+      console.log(output);
+      response.json(output);
+    });
 });
 
 app.listen(3000, () => {
