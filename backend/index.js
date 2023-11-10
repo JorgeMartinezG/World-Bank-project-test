@@ -36,6 +36,8 @@ app.get("/", (request, response) => {
 
   const capabilitiesUrl = `${serverUrl}?service=WMS&request=getcapabilities`;
 
+  console.log("Fetching server capabilities...");
+
   fetch(capabilitiesUrl)
     .then((res) => res.text())
     .then((xmlstr) => {
