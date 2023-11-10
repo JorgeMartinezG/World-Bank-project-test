@@ -1,19 +1,14 @@
 import {
   Component,
-  OnInit,
   OnDestroy,
   Input,
   Output,
-  OnChanges,
   EventEmitter,
-  SimpleChanges,
 } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import {
   Map,
   control,
-  DomUtil,
-  ZoomAnimEvent,
   MapOptions,
   tileLayer,
   TileLayer,
