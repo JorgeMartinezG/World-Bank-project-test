@@ -5,18 +5,11 @@ import {
   Output,
   EventEmitter,
 } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
-import {
-  Map,
-  control,
-  MapOptions,
-  tileLayer,
-  TileLayer,
-  latLng,
-} from "leaflet";
+import { Map, control, MapOptions, tileLayer, latLng } from "leaflet";
 import * as L from "leaflet";
 import "leaflet-control-geocoder";
-import { Layer, LayersList } from "../types";
+import { Layer, LayersList, Overlay } from "../types";
+import { MapService } from "./map.service";
 
 const layers = {
   topo: L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
@@ -61,7 +54,7 @@ export class MapComponent implements OnDestroy {
   };
   public map: Map;
 
-  constructor(private http: HttpClient) {}
+  constructor(private mapService: MapService) {}
 
   ngOnDestroy() {
     this.map.clearAllEventListeners;
@@ -77,24 +70,22 @@ export class MapComponent implements OnDestroy {
     };
 
     // Add layers from server.
-    this.http
-      .get<LayersList>("http://localhost:3000")
-      .subscribe((res: LayersList) => {
-        const overlays = res.layers.reduce(
-          (acc: { [key: string]: TileLayer }, item: Layer) => ({
-            ...acc,
-            [item.title]: tileLayer.wms(item.url, {
-              layers: item.id,
-              format: "image/png",
-              version: "1.1.0",
-              transparent: true,
-            }),
+    this.mapService.getOverlays().subscribe((res: LayersList) => {
+      const overlays = res.layers.reduce(
+        (acc: Overlay, item: Layer) => ({
+          ...acc,
+          [item.title]: tileLayer.wms(item.url, {
+            layers: item.id,
+            format: "image/png",
+            version: "1.1.0",
+            transparent: true,
           }),
-          {},
-        );
+        }),
+        {},
+      );
 
-        control.layers(basemaps, overlays, { collapsed: false }).addTo(map);
-      });
+      control.layers(basemaps, overlays, { collapsed: false }).addTo(map);
+    });
 
     (L.Control as any).geocoder({ collapsed: false }).addTo(map);
 
