@@ -16,6 +16,7 @@ import {
   ZoomAnimEvent,
   MapOptions,
   tileLayer,
+  TileLayer,
   latLng,
 } from "leaflet";
 import * as L from "leaflet";
@@ -85,7 +86,7 @@ export class MapComponent implements OnDestroy {
       .get<LayersList>("http://localhost:3000")
       .subscribe((res: LayersList) => {
         const overlays = res.layers.reduce(
-          (acc: { [key: string]: any }, item: Layer) => ({
+          (acc: { [key: string]: TileLayer }, item: Layer) => ({
             ...acc,
             [item.title]: tileLayer.wms(item.url, {
               layers: item.id,
