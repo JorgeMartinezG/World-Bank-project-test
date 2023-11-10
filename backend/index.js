@@ -7,6 +7,24 @@ const app = express();
 app.use(cors());
 
 app.get("/", (request, response) => {
+  // For using hardcoded layers, uncomment the following block.
+  /*
+  const layers = [
+    {
+      title: "GPWv4: Population Density – 2015",
+      url: "http://sedac.ciesin.columbia.edu/geoserver/wms",
+      id: "gpw-v4:gpw-v4-population-density_2015",
+    },
+    {
+      title: "Probabilities of Urban Expansion to 2030",
+      url: "http://sedac.ciesin.columbia.edu/geoserver/wms",
+      id: "lulc:lulc-global-grid-prob-urban-expansion-2030",
+    },
+  ];
+
+  response.json({ total: layers.length, layers });
+  */
+
   // Check layers.txt file for more layer ids.
   const allowedLayers = [
     "gpw-v4:gpw-v4-population-density_2015",
@@ -36,24 +54,6 @@ app.get("/", (request, response) => {
     )
     .then((layers) => layers.map((layer) => ({ ...layer, url: serverUrl })))
     .then((layers) => response.json({ total: layers.length, layers }));
-
-  // For using hardcoded layers, uncomment the following block.
-  /*
-  const layers = [
-    {
-      title: "GPWv4: Population Density – 2015",
-      url: "http://sedac.ciesin.columbia.edu/geoserver/wms",
-      id: "gpw-v4:gpw-v4-population-density_2015",
-    },
-    {
-      title: "Probabilities of Urban Expansion to 2030",
-      url: "http://sedac.ciesin.columbia.edu/geoserver/wms",
-      id: "lulc:lulc-global-grid-prob-urban-expansion-2030",
-    },
-  ];
-
-  response.json({ total: layers.length, layers });
-  */
 });
 
 app.listen(3000, () => {
